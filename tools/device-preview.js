@@ -7,7 +7,7 @@ const path = require('path');
 const R = 36, TOP = 24, BOTTOM = 20, W = 1376, H = 1032;
 (async () => {
   const b = await chromium.launch();
-  const p = await b.newPage({ viewport: { width: W, height: H } });
+  const p = await b.newPage({ viewport: { width: W, height: H }, reducedMotion: 'reduce' });
   await p.goto('file://' + path.resolve(__dirname, '..', 'index.html'));
   await p.evaluate(() => localStorage.clear()); await p.reload();
   await p.addStyleTag({ content: `#safe{top:${TOP}px!important;bottom:${BOTTOM}px!important}` });

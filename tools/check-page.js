@@ -73,6 +73,7 @@ function serve() {
   await tap('#start');
   ok(await page.isVisible('#notice'), 'tapping Start phase opens the phase-change view');
   ok((await page.textContent('.nbox h2')) === 'Phase 3 begins', 'phase 3 title');
+  ok((await page.getAttribute('.nrail svg.loco', 'data-type')) === '3', 'the 3-train steams onto the phase 3 sheet');
   // tap where the CPR button is (under the overlay): it must only close the view
   const cpr = await page.$eval('[data-act="select"][data-co="CPR"]', e => { const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
   await page.touchscreen.tap(cpr.x, cpr.y);
@@ -85,6 +86,8 @@ function serve() {
   // Rapid tapping: diesel, 14 taps as fast as possible
   await tap('[data-act="select"][data-co="Erie"]');
   await tap('[data-act="addTrain"][data-type="D"]');
+  ok((await page.getAttribute('.nrail svg.loco', 'data-type')) === 'D', 'the diesel glides onto the phase 7 sheet');
+  ok((await page.$$eval('.rusted b', els => els.map(e => e.textContent).join())) === 'Rusted,Rusted,Rusted', 'the 2-, 3- and 4-trains each get a Rusted stamp');
   await tap('.done');
   const chip = await page.$eval('[data-act="addCity"][data-v="10"]', e => { const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
   for (let i = 0; i < 14; i++) await page.touchscreen.tap(chip.x, chip.y);
@@ -113,10 +116,52 @@ function serve() {
   await tap('[data-act="select"][data-co="B&M"]');
   await tap('[data-act="addTrain"][data-type="2"]');
   ok(await page.$('.card.roll') !== null, 'a new train rolls in');
+  ok(await page.$('.card.roll svg.loco .wh') !== null && await page.$('.card.roll svg.loco .pf') !== null, 'the arriving engine has its own wheels and steam to move');
+  ok(await page.$('.add.nudge svg.loco .wh') !== null, 'the Add-train button just used turns its wheels');
   await tap('[data-act="addCity"][data-v="30"]');
   ok(await page.$('.city.stamp') !== null, 'the city just added gets its ink-stamp animation');
+  ok(await page.$('.chip.pressed') !== null, 'the rubber stamp used presses down');
+  ok(await page.$$eval('.card .city', els => els.every(e => e.querySelector('.imp') && /(^| )ink-[1-6]( |$)/.test(e.className))), 'every value is an ink impression with one of the six inks');
+  ok(await page.$$eval('.chip', els => els.every(e => e.querySelector('use[href="#st-handle"]') && e.querySelector('use[href="#st-face"]') && e.textContent === e.dataset.v)), 'every value button is a rubber stamp showing its value');
+  {
+    // each impression keeps its tilt, shift and ink through redraws, other removals and Undo
+    const look = () => page.$$eval('.card .city', els => els.map(e => e.textContent + ' ' + e.getAttribute('style') + ' ' + e.className.match(/ink-\d/)[0]));
+    const a = await look();
+    await tap('[data-act="select"][data-co="PRR"]'); await tap('[data-act="select"][data-co="B&M"]');
+    ok(JSON.stringify(a) === JSON.stringify(await look()), 'impressions do not move when the screen is redrawn');
+    ok(await page.$$eval('.card .city', els => els.every(e => { const s = e.getAttribute('style'); const n = k => Math.abs(parseFloat(s.split(k + ':')[1])); return n('--tilt') <= 3 && n('--ox') <= 1.5 && n('--oy') <= 1.5; })), 'tilt stays within 3° and the shift within 1.5 px');
+  }
   await tap('[data-act="addCity"][data-v="40"]');
-  ok(await page.$('#total.rise') !== null, 'the changed total rises into place');
+  ok(await page.$('#total .odo') !== null && (await page.textContent('#total')) === '$70', 'a total that grows a figure rolls too ($0 → $70) and reads exactly $70');
+  // a second B&M 2-train: one city counts 0, a second takes the total from $70 to $90 (same length)
+  await tap('[data-act="addTrain"][data-type="2"]');
+  await tap('[data-act="addCity"][data-v="10"]');
+  await tap('[data-act="addCity"][data-v="10"]');
+  ok(await page.$('#total .odo') !== null, 'a total of the same length rolls like a counter ($70 → $90)');
+  ok((await page.textContent('#total')) === '$90', 'the rolling total still reads exactly $90');
+  await page.waitForTimeout(700);
+  ok(await page.$eval('#total .odo', e => getComputedStyle(e).color !== 'rgba(0, 0, 0, 0)'), 'after rolling, the digit is visible ink');
+  // removing: the city lifts off, Undo plays it back
+  await tap('.card:nth-child(2) .city:last-child');
+  ok(await page.$('.ghost.wipe') !== null, 'a removed city is wiped away');
+  ok(await page.$eval('.ghost.wipe', e => getComputedStyle(e).pointerEvents) === 'none', 'the wiped city cannot be tapped');
+  await tap('#undo');
+  ok(await page.$('.card:nth-child(2) .city.stamp') !== null, 'Undo stamps the city back in');
+  await page.waitForTimeout(1000);
+  ok(await page.$('.ghost') === null, 'nothing is left behind once the motion is over');
+  await tap('.card:nth-child(2) [data-act="removeTrain"]');
+  ok(await page.$('.ghost.leave') !== null, 'a removed train rolls away');
+  await tap('#undo');
+  ok(await page.$('.card.roll') !== null, 'Undo rolls the train back in');
+  // every engine has an explicit pixel size and stands on its rail inside its button or badge
+  await page.waitForTimeout(1500);   // let any arriving engine finish its drive
+  const fits = await page.$$eval('svg.loco', els => els.every(e => {
+    const w = e.getAttribute('width'), h = e.getAttribute('height'), box = e.closest('.add, .badge');
+    if (!w || !h || !box) return false;
+    const r = e.getBoundingClientRect(), b = box.getBoundingClientRect();
+    return r.bottom <= b.bottom + 0.5 && r.left >= b.left - 0.5 && r.right <= b.right + 0.5;
+  }));
+  ok(fits, 'every engine has a fixed size and its wheels sit inside its button or badge');
   // Swipe on the payout panel: next / previous company; a swipe over the chips does nothing
   const payBox = await page.$eval('#pay', e => { const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
   const drag = async (x1, y, x2) => { await page.mouse.move(x1, y); await page.mouse.down(); await page.mouse.move((x1 + x2) / 2, y, { steps: 3 }); await page.mouse.move(x2, y, { steps: 3 }); await page.mouse.up(); };
@@ -140,6 +185,21 @@ function serve() {
 
   ok(reqs.every(u => u === url), 'no requests besides the page itself (' + reqs.length + ' total)');
   await ctx.close();
+
+  // ---------- 1b. Reduce Motion: every gesture is off, nothing is left half-drawn ----------
+  {
+    const c2 = await browser.newContext({ viewport: { width: 1376, height: 1032 }, hasTouch: true, reducedMotion: 'reduce' });
+    const p2 = await c2.newPage();
+    await p2.goto(url); await p2.evaluate(() => localStorage.clear()); await p2.reload();
+    for (const sel of ['[data-act="addTrain"][data-type="2"]', '[data-act="addCity"][data-v="20"]', '[data-act="addCity"][data-v="30"]', '[data-act="addTrain"][data-type="2"]', '[data-act="addCity"][data-v="10"]', '[data-act="addCity"][data-v="10"]']) await p2.tap(sel);
+    await p2.tap('.card:first-child .city');
+    ok(await p2.$('.ghost, .odo, .roll, .nudge, .stamp') === null, 'Reduce Motion: no gesture is started');
+    ok(await p2.evaluate(() => document.getAnimations().length) === 0, 'Reduce Motion: no animation runs');
+    await p2.tap('[data-act="addTrain"][data-type="3"]');
+    const st = await p2.$eval('.nrail svg', e => getComputedStyle(e).transform);
+    ok(st === 'none', 'Reduce Motion: the phase sheet engine simply stands on its rail');
+    await c2.close();
+  }
 
   // ---------- 2. Hosted on its own site ----------
   const srv = await serve();

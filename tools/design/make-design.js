@@ -79,7 +79,7 @@ const LOCOS = require('./locos.js')(INK, PAPER2);
 const broken = LOCOS.check();
 if (broken.length) throw new Error('locomotive rules broken:\n' + broken.join('\n'));
 const SPRITE = `<svg id="sprite" width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${Object.entries(LOCOS.types)
-  .map(([k, v]) => `<symbol id="loco-${k}" viewBox="0 ${v.top} ${v.w} ${80 - v.top}">${v.svg.replace(/\s*\n\s*/g, ' ')}</symbol>`).join('')}</defs></svg>`;
+  .map(([k, v]) => `<g id="loco-${k}" data-box="0 ${v.top} ${v.w} ${80 - v.top}">${v.svg.replace(/\s*\n\s*/g, ' ')}</g>`).join('')}</defs></svg>`;
 
 // ---------- write the generated blocks ----------
 function put(start, end, content) {
