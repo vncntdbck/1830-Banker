@@ -1,0 +1,16 @@
+{
+  "name": "1830-banker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "One-screen payout calculator for the banker in 1830: Railways & Robber Barons",
+  "scripts": {
+    "test": "node --test",
+    "check": "node tools/check-page.js",
+    "shots": "node tools/shots.js shots",
+    "icons": "node tools/make-icons.js",
+    "design": "node tools/design/make-design.js"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
