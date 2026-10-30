@@ -126,7 +126,8 @@ On the iPad: open the site in Safari → Share → Add to Home Screen.
   CITY heading with diamonds under a rule, figure in Bodoni); the value buttons are the rubber
   stamps that make them: the same face on a mounting plate with a turned wooden handle (1.5×).
   Both are drawn by the script into a hidden sprite (`#st-imp`, `#st-face`, `#st-handle`).
-  The stamp row is 78 units high (the trains heading 36, row gaps 8) so the stamps are large
+  The stamp row is 78 units high (the trains heading 40 with its text lifted clear of the
+  guilloche band, row gaps 8, gaps between train cards 8) so the stamps are large
   enough to hit easily (about 74 × 72 pt on the iPad).
   Chosen over perforated revenue stamps (paler, less legible) and a plain rounded frame.
 - Train cards are sorted by size. New train = highlighted. City chips fill the highlighted

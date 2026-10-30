@@ -164,15 +164,16 @@ button:disabled { cursor: default; }
 /* ----- Main ----- */
 #main { display: grid; grid-template-columns: 1fr 476px; column-gap: 16px; min-height: 0; }
 .panel { position: relative; background: var(--paper-2); border: var(--double); min-height: 0; }
-#snap { padding: 10px 16px 14px; display: grid; grid-template-rows: 36px 1fr 72px 78px; row-gap: 8px; }
+#snap { padding: 10px 16px 14px; display: grid; grid-template-rows: 40px 1fr 72px 78px; row-gap: 8px; }
 .snap-h { display: flex; align-items: baseline; gap: 14px; position: relative; }
 .snap-h::after, .ladder-h::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; height: 14px;
   background: var(--orn-band) repeat-x 0 0 / 180px 14px; pointer-events: none; }
+.snap-h h2, .snap-h p { position: relative; top: -5px; }   /* letters clear of the band below */
 .snap-h h2 { font-family: var(--font-display); font-size: 28px; font-weight: 700; display: flex; align-items: baseline; gap: 10px; }
 .snap-h h2 i { display: inline-block; width: 14px; height: 14px; background: var(--co); box-shadow: inset 0 0 0 1px var(--swatch-line); }
 .snap-h h2 em { font-weight: 500; color: var(--ink-2); }
 .snap-h p { font-family: var(--font-display); font-style: italic; font-size: 17px; color: var(--ink-2); margin-left: auto; }
-#cards { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow: hidden; }
+#cards { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; }
 .card { display: grid; grid-template-columns: 112px 1fr 92px 64px; column-gap: 6px; align-items: center;
   background: var(--paper); border: 1.5px solid var(--card-rule); padding: 7px 6px; flex: none; cursor: pointer; }
 .card.act { border-color: var(--accent); }
