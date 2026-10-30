@@ -117,8 +117,14 @@ On the iPad: open the site in Safari → Share → Add to Home Screen.
   music (audio session "ambient", follows silent mode where Safari allows). A "Whistle/Horn
   on/off" switch sits in the phase-change view (remembered in localStorage, `banker-sound`); it
   does not close the view. Not tied to Reduce Motion (that is about motion).
-- Swipe left/right on the payout panel = next/previous company (row order, wraps). Only there,
-  so it cannot interfere with entering values. Tapping a company stays the main way.
+- Swipe left/right anywhere on the screen = next/previous company (row order, wraps); the
+  owner chose the whole screen for intuitiveness. A swipe = at least 55 units sideways, mostly
+  horizontal (|dy| ≤ 0.7·|dx|), any speed; ignored while the phase-change view is open. A finger
+  that moved more than 12 units is never a tap (the click a browser may still send is dropped,
+  and the fast-second-tap helper skips drags), so a swipe or a half-swipe can never stamp,
+  remove or select anything. A slightly sloppy tap (a few units) still counts as a tap.
+  `tools/check-page.js` drives real touch input for these cases. Tapping a company stays the
+  main way.
 - The screen is kept awake while the app is open (Screen Wake Lock, where the browser allows).
 - The per-company panel is titled "<company> trains & runs" (the snapshot is the concept; the
   word is not used on screen).

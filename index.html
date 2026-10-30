@@ -1263,22 +1263,35 @@ window.BANKER_SOUNDS = { whistle: "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAA
     render(was);
   });
 
-  // Swipe left/right on the payout panel: next/previous company (row order, wrapping).
-  // Only there, so it can never interfere with entering values.
-  let swipe = null;
+  // Swipe left/right anywhere on the screen: next/previous company (row order, wrapping).
+  // A swipe is a clearly sideways move of at least SWIPE units (about a finger's width), at any
+  // speed. A finger that moved more than a few units is never a tap, so a swipe (or a drag that
+  // falls short of one) cannot press a stamp, remove a value or select something by accident.
+  const SWIPE = 55, SLOP = 12;
+  let swipe = null, noClickUntil = 0;
   stage.addEventListener('pointerdown', e => {
-    swipe = e.target.closest('#pay') && !store.state.notice ? { x: e.clientX, y: e.clientY, t: Date.now() } : null;
+    swipe = store.state.notice || !e.isPrimary ? null : { x: e.clientX, y: e.clientY, moved: 0 };
   });
+  stage.addEventListener('pointermove', e => {
+    if (!swipe) return;
+    const s = Number(stage.dataset.scale) || 1;
+    swipe.moved = Math.max(swipe.moved, Math.hypot(e.clientX - swipe.x, e.clientY - swipe.y) / s);
+  });
+  stage.addEventListener('pointercancel', () => { swipe = null; });
   stage.addEventListener('pointerup', e => {
     if (!swipe) return;
     const s = Number(stage.dataset.scale) || 1, dx = (e.clientX - swipe.x) / s, dy = (e.clientY - swipe.y) / s;
+    const moved = Math.max(swipe.moved, Math.hypot(dx, dy));
     swipe = null;
-    if (Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.6) return;
+    if (moved > SLOP) noClickUntil = Date.now() + 400;      // it was a drag, not a tap
+    if (Math.abs(dx) < SWIPE || Math.abs(dy) > Math.abs(dx) * 0.7) return;
     const list = C.COMPANIES, i = list.indexOf(store.state.selected), dir = dx < 0 ? 1 : -1;
-    turnDir = dir; disarm();
+    turnDir = dir; disarm(); lastTap = Date.now();
     store.dispatch({ type: 'select', company: list[(i + dir + list.length) % list.length] });
     render();
   });
+  // the click that a browser may still send at the end of a drag is dropped
+  stage.addEventListener('click', e => { if (Date.now() < noClickUntil) { e.stopPropagation(); e.preventDefault(); } }, true);
 
   // Keep the screen on while the app is open (where the browser allows it; nothing is sent anywhere).
   let wake = null;
@@ -1295,10 +1308,12 @@ window.BANKER_SOUNDS = { whistle: "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAA
   ['gesturestart', 'gesturechange', 'dblclick', 'contextmenu', 'selectstart'].forEach(ev =>
     document.addEventListener(ev, e => e.preventDefault(), { passive: false }));
   document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
-  let lastTouchEnd = 0;
+  let lastTouchEnd = 0, touchStart = null;
+  document.addEventListener('touchstart', e => { const t = e.touches[0]; touchStart = t ? { x: t.clientX, y: t.clientY } : null; }, { passive: true });
   document.addEventListener('touchend', e => {
-    const now = Date.now();
-    if (now - lastTouchEnd < 350 && e.cancelable) {
+    const now = Date.now(), t0 = e.changedTouches[0];
+    const dragged = touchStart && t0 && Math.hypot(t0.clientX - touchStart.x, t0.clientY - touchStart.y) > 10;
+    if (now - lastTouchEnd < 350 && e.cancelable && !dragged) {
       // A second quick tap: deliver it as a click ourselves so iOS can never treat it as double-tap zoom.
       e.preventDefault();
       const t = e.changedTouches[0];

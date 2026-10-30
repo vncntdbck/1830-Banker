@@ -187,8 +187,42 @@ function serve() {
   const chipBox = await page.$eval('.chiprow', e => { const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
   const citiesBefore = await page.$$eval('.card .city', els => els.length);
   await drag(chipBox.x + 150, chipBox.y, chipBox.x - 150);
-  ok((await page.textContent('.co.sel .nm')) === 'B&M', 'a swipe over the value chips does not change company');
-  ok((await page.$$eval('.card .city', els => els.length)) <= citiesBefore + 1, 'a swipe over the chips adds at most the one value it ends on');
+  ok((await page.textContent('.co.sel .nm')) === 'PRR', 'a swipe works anywhere, also over the value stamps');
+  await drag(chipBox.x - 150, chipBox.y, chipBox.x + 150);
+  ok((await page.textContent('.co.sel .nm')) === 'B&M' && (await page.$$eval('.card .city', els => els.length)) === citiesBefore, 'a swipe over the stamps stamps nothing');
+  {
+    // real finger input (touch events), as on the iPad
+    const cdp = await page.context().newCDPSession(page);
+    const touch = async (pts, gap = 16) => {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: pts[0][0], y: pts[0][1] }] });
+      for (const [x, y] of pts.slice(1)) { await page.waitForTimeout(gap); await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y }] }); }
+      await page.waitForTimeout(gap);
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await page.waitForTimeout(450);
+    };
+    const line = (x1, y1, x2, y2, n = 8) => [...Array(n + 1)].map((_, i) => [x1 + (x2 - x1) * i / n, y1 + (y2 - y1) * i / n]);
+    const cities = () => page.$$eval('.card .city', els => els.length);
+    const sel = () => page.textContent('.co.sel .nm');
+    const card = await page.$eval('#cards', e => { const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + 30 }; });
+    await touch(line(card.x + 120, card.y, card.x - 120, card.y + 20));
+    ok(await sel() === 'PRR', 'finger swipe over the train cards goes to the next company');
+    await touch(line(card.x - 120, card.y, card.x + 120, card.y - 10, 6), 40);
+    ok(await sel() === 'B&M', 'a slow finger swipe back works too');
+    const stamp = await page.$eval('[data-act="addCity"][data-v="20"]', e => { const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+    await page.evaluate(() => { const b = [...document.querySelectorAll('.add:not(:disabled)')].find(e => !/starts phase/.test(e.textContent)) ||
+      [...document.querySelectorAll('.card .rm')][0]; b.click(); });   // a train with room (or make room)
+    await page.waitForTimeout(300);
+    if (await page.$eval('[data-act="addCity"][data-v="20"]', e => e.disabled)) { await page.evaluate(() => document.querySelector('.add:not(:disabled)').click()); await page.waitForTimeout(300); }
+    let n = await cities();
+    await touch(line(stamp.x, stamp.y, stamp.x + 5, stamp.y + 4, 2));
+    ok(await cities() === n + 1 && await sel() === 'B&M', 'a slightly sloppy tap on a stamp still stamps (and does not switch company)');
+    n = await cities();
+    await touch(line(stamp.x, stamp.y, stamp.x + 34, stamp.y + 6, 4));
+    ok(await cities() === n && await sel() === 'B&M', 'a short sideways drag on a stamp neither stamps nor switches company');
+    await touch(line(stamp.x, stamp.y, stamp.x + 20, stamp.y + 90, 4));
+    ok(await cities() === n && await sel() === 'B&M', 'a downward drag does nothing');
+    await cdp.detach();
+  }
 
   // New game needs a second tap
   await tap('#newgame');
