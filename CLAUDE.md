@@ -67,6 +67,10 @@ On the iPad: open the site in Safari → Share → Add to Home Screen.
   bottom inset is not used. When the height decides the scale, the stage grows wider (up to
   15%, the grid simply widens) so the side margins match. The page frame is drawn by CSS (two
   rules) plus a corner rosette image, so it takes any width (`tools/device-preview.js`).
+  On the real iPad (Home Screen app) iPadOS reports no top safe area and a page height ~40 pt
+  shorter than the screen, while drawing the page over the whole screen. So in standalone
+  landscape the stage is centred in the real screen height (min of screen.width/height), never
+  closer than status bar 24 + 6 pt to the top (`tools/check-page.js` simulates both readings).
 - Touch targets are 56–64 units: ≥ 52 pt on the iPad Home Screen app, ≥ 50 pt in Safari.
   All above Apple's 44 pt minimum.
 - App icon: the app's own bank office stamp, large, inked in navy on ivory and tilted 3°, with

@@ -754,12 +754,23 @@ window.BANKER_SOUNDS = { whistle: "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAA
     const r = safe.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
     const E = Math.max(0, r.top) + MARGIN;
     const w = vw - 2 * E, h = vh - 2 * E;
-    const s = Math.min(w / W, h / H);
+    let s = Math.min(w / W, h / H);
+    let top = E + (h - H * s) / 2;
+    // Home Screen app on an iPad: the page is drawn over the whole screen, but iPadOS reports no
+    // room for the status bar and a shorter height than the screen. Centre the stage in the real
+    // screen height instead, never closer than the status bar (24 pt) + 6 pt to the top.
+    const standalone = navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+    const screenH = Math.min(screen.width, screen.height);
+    if (standalone && vw > vh && screenH >= vh && screenH - vh < 80) {
+      const clear = Math.max(r.top, 24) + 6;
+      s = Math.min(s, w / W, (screenH - 2 * clear) / H);
+      top = Math.max(clear, (screenH - H * s) / 2);
+    }
     // when the height decides the scale, the stage takes the spare width (up to 15% wider), so
     // the margin at the sides matches the others; the layout is a grid and simply grows
     const sw = Math.min(Math.max(W, w / s), W * 1.15);
     stage.style.width = sw + 'px';
-    stage.style.transform = 'translate(' + (E + (w - sw * s) / 2) + 'px,' + (E + (h - H * s) / 2) + 'px) scale(' + s + ')';
+    stage.style.transform = 'translate(' + (E + (w - sw * s) / 2) + 'px,' + top + 'px) scale(' + s + ')';
     stage.dataset.scale = s.toFixed(4);
   }
 

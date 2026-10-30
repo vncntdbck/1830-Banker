@@ -216,6 +216,18 @@ function serve() {
     await c2.close();
   }
 
+  // ---------- 1c. iPad Home Screen app: iPadOS reports no status-bar room and a short height ----------
+  // (measured on the owner's 13" iPad Pro: screen 1032 pt high, page told 992). The frame must sit
+  // clear of the status bar (≥ 30 pt) and centred in the real screen, whichever height is reported.
+  for (const vh of [992, 1032]) {
+    const p3 = await browser.newPage({ viewport: { width: 1376, height: vh } });
+    await p3.addInitScript(() => { Object.defineProperty(navigator, 'standalone', { get: () => true }); Object.defineProperty(screen, 'width', { get: () => 1032 }); Object.defineProperty(screen, 'height', { get: () => 1376 }); });
+    await p3.goto(url);
+    const m = await p3.evaluate(() => { const r = document.getElementById('stage').getBoundingClientRect(); return { top: r.top, gap: 1032 - r.bottom }; });
+    ok(m.top >= 29.5 && Math.abs(m.top - m.gap) < 1.5, 'Home Screen app (page told ' + vh + ' pt high): clear of the status bar and centred (' + Math.round(m.top) + ' / ' + Math.round(m.gap) + ' pt)');
+    await p3.close();
+  }
+
   // ---------- 2. Hosted on its own site ----------
   const srv = await serve();
   const base = 'http://127.0.0.1:' + srv.address().port + '/';
