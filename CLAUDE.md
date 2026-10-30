@@ -23,7 +23,7 @@ as they happen.
 
 ## Files
 - `index.html` — the whole app, one file. It holds the design tokens (`:root` in the main
-  `<style>`), three generated blocks (embedded fonts, ornaments, locomotive drawings) and two scripts:
+  `<style>`), four generated blocks (embedded fonts, ornaments, locomotive drawings, sounds) and two scripts:
   - `<script id="core">` — pure rules + state logic (phase table, runs, payouts, rusting,
     auto-advance, undo, persistence). No DOM. Tests load it straight out of this file.
   - `<script id="app">` — the screen.
@@ -36,7 +36,8 @@ as they happen.
 - `tools/` — `load-core.js` (test loader), `shots.js` (renders 3 window sizes and measures),
   `check-page.js` (real clicks/taps, reload, hosted mode, offline, SW list, motion, Reduce Motion),
   `motion-clips.js` (records the gestures as short mp4 clips for review),
-  `make-icons.js` + `icon.svg` (icon source).
+  `make-icons.js` + `icon.svg` (icon source), `make-sounds.py` + `sounds/` (the synthesized
+  whistle and horn, embedded into `index.html` as `<script id="sounds">`).
 
 ## Commands
 ```
@@ -48,6 +49,7 @@ node tools/shots.js shots                     # screenshots + layout measurement
 node tools/device-preview.js preview.png      # the app on an iPad Pro 13" (corners, status bar)
 node tools/motion-clips.js clips              # short video clips of every gesture (needs ffmpeg)
 node tools/make-icons.js                      # redraw the app icon from the tokens + locomotive
+python3 tools/make-sounds.py                  # re-synthesize and embed the whistle and horn (numpy, scipy, ffmpeg)
 node tools/design/make-design.js              # after changing a colour token or a locomotive
 ```
 
@@ -67,9 +69,10 @@ On the iPad: open the site in Safari → Share → Add to Home Screen.
   rules) plus a corner rosette image, so it takes any width (`tools/device-preview.js`).
 - Touch targets are 56–64 units: ≥ 52 pt on the iPad Home Screen app, ≥ 50 pt in Safari.
   All above Apple's 44 pt minimum.
-- App icon: ivory certificate with double frame and corner rosettes around the classic
-  American steam engine (the 4-train engine) in navy; drawn by `tools/make-icons.js` from the
-  same locomotive source and tokens. Tenders carry coal only (no wood), for simplicity.
+- App icon: the app's own bank office stamp, large, inked in navy on ivory and tilted 3°, with
+  "1830" in its heading and the classic American steam engine (the 4-train) inside; its cut
+  corners keep it clear of iOS's rounded mask (the earlier square frame clashed with it).
+  Drawn by `tools/make-icons.js` from the same locomotive source, tokens and embedded fonts.
 - Payout panel: the total payout is the largest number on screen (it is also what the treasury
   gets on withhold); below it each holding 10%–60% with what it receives, in large type, so a
   player can read their amount from across the table.
@@ -99,6 +102,14 @@ On the iPad: open the site in Safari → Share → Add to Home Screen.
   (bottom edge). Sprite = plain `<g id="loco-T" data-box>` groups used with `<use>`; never
   `<symbol>` + CSS-calc sizing (that cropped the engines at the bottom in Safari). An engine
   that is about to move gets a private inline copy (wheels `.wh`, steam puffs `.pf`).
+- Sound: one only, at a phase change started by a tap (Start phase, or adding the train that
+  starts it): a three-chime steam whistle (F minor chord, steam hiss, valve scoop; two blasts,
+  ~4 s) for phases 3–6 and a five-chime diesel air horn for phase 7, so the sound tells the end
+  of steam. Synthesized by `tools/make-sounds.py` (no recordings, no licences), embedded as MP3,
+  played with Web Audio as the engine steams onto the sheet. Never on Undo or reload; mixes with
+  music (audio session "ambient", follows silent mode where Safari allows). A "Whistle/Horn
+  on/off" switch sits in the phase-change view (remembered in localStorage, `banker-sound`); it
+  does not close the view. Not tied to Reduce Motion (that is about motion).
 - Swipe left/right on the payout panel = next/previous company (row order, wraps). Only there,
   so it cannot interfere with entering values. Tapping a company stays the main way.
 - The screen is kept awake while the app is open (Screen Wake Lock, where the browser allows).

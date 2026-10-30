@@ -74,6 +74,12 @@ function serve() {
   ok(await page.isVisible('#notice'), 'tapping Start phase opens the phase-change view');
   ok((await page.textContent('.nbox h2')) === 'Phase 3 begins', 'phase 3 title');
   ok((await page.getAttribute('.nrail svg.loco', 'data-type')) === '3', 'the 3-train steams onto the phase 3 sheet');
+  ok(await page.evaluate(() => window.__banker.lastSound()) === 'whistle', 'a steam whistle sounds when the phase starts');
+  await tap('.nfoot .snd');
+  ok(await page.isVisible('#notice') && (await page.textContent('.nfoot .snd')) === 'Whistle off', 'the Whistle switch turns it off and keeps the view open');
+  ok(await page.evaluate(() => localStorage.getItem('banker-sound')) === 'off', 'the Whistle setting is remembered');
+  await tap('.nfoot .snd');
+  ok((await page.textContent('.nfoot .snd')) === 'Whistle on', 'and back on');
   // tap where the CPR button is (under the overlay): it must only close the view
   const cpr = await page.$eval('[data-act="select"][data-co="CPR"]', e => { const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
   await page.touchscreen.tap(cpr.x, cpr.y);
@@ -87,6 +93,7 @@ function serve() {
   await tap('[data-act="select"][data-co="Erie"]');
   await tap('[data-act="addTrain"][data-type="D"]');
   ok((await page.getAttribute('.nrail svg.loco', 'data-type')) === 'D', 'the diesel glides onto the phase 7 sheet');
+  ok(await page.evaluate(() => window.__banker.lastSound()) === 'horn', 'the first diesel sounds a horn, not a whistle');
   ok((await page.$$eval('.rusted b', els => els.map(e => e.textContent).join())) === 'Rusted,Rusted,Rusted', 'the 2-, 3- and 4-trains each get a Rusted stamp');
   await tap('.done');
   const chip = await page.$eval('[data-act="addCity"][data-v="10"]', e => { const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
