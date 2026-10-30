@@ -315,6 +315,7 @@ button { transition: transform .08s ease-out; }
 /* ----- The phase-change moment (the only overlay) ----- */
 #notice { position: absolute; inset: 0; z-index: 5; background: var(--veil); display: flex; align-items: center; justify-content: center; }
 #notice[hidden] { display: none; }
+#diag { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 9; max-width: 80vw; padding: 16px 20px; background: var(--paper-2); border: var(--double); font: 600 17px/1.4 var(--font-label); color: var(--ink); }
 .nbox { width: 1000px; background: var(--paper-2); border: var(--double); box-shadow: 0 0 0 10px var(--paper-2), 0 0 0 11px var(--rule); padding: 30px 44px 28px; }
 .nbox h2 { font-family: var(--font-display); font-size: 52px; font-weight: 700; line-height: 1.05; }
 .nbox .why { font-family: var(--font-display); font-style: italic; font-size: 21px; color: var(--ink-2); margin-top: 6px; }
@@ -756,15 +757,23 @@ window.BANKER_SOUNDS = { whistle: "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAA
     const w = vw - 2 * E, h = vh - 2 * E;
     let s = Math.min(w / W, h / H);
     let top = E + (h - H * s) / 2;
-    // Home Screen app on an iPad: the page is drawn over the whole screen, but iPadOS reports no
-    // room for the status bar and a shorter height than the screen. Centre the stage in the real
-    // screen height instead, never closer than the status bar (24 pt) + 6 pt to the top.
+    // Home Screen app on an iPad (landscape, full screen): iPadOS reports its safe areas
+    // unreliably, so the reported insets are ignored. The page starts at the top of the screen
+    // (under the status bar); the bottom strip the page is not told about (screen height minus
+    // the page height) is counted as margin. Result: one even margin G from the screen edges on
+    // all four sides, clear of the status bar and the home bar.
     const standalone = navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
     const screenH = Math.min(screen.width, screen.height);
     if (standalone && vw > vh && screenH >= vh && screenH - vh < 80) {
-      const clear = Math.max(r.top, 24) + 6;
-      s = Math.min(s, w / W, (screenH - 2 * clear) / H);
-      top = Math.max(clear, (screenH - H * s) / 2);
+      const G = 44, strip = screenH - vh, bottom = Math.max(0, G - strip);
+      const ws = vw - 2 * G, hs = vh - G - bottom;
+      s = Math.min(ws / W, hs / H);
+      top = G + (hs - H * s) / 2;
+      const sw2 = Math.min(Math.max(W, ws / s), W * 1.15);
+      stage.style.width = sw2 + 'px';
+      stage.style.transform = 'translate(' + (G + (ws - sw2 * s) / 2) + 'px,' + top + 'px) scale(' + s + ')';
+      stage.dataset.scale = s.toFixed(4);
+      return;
     }
     // when the height decides the scale, the stage takes the spare width (up to 15% wider), so
     // the margin at the sides matches the others; the layout is a grid and simply grows
@@ -1298,6 +1307,25 @@ window.BANKER_SOUNDS = { whistle: "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAA
     lastTouchEnd = now;
   }, { passive: false });
 
+  // What this iPad reports about its screen: hold the PHASE box for about a second (any tap closes).
+  let diagTimer = null;
+  stage.addEventListener('pointerdown', e => {
+    clearTimeout(diagTimer);
+    if (!e.target.closest('.phase')) return;
+    diagTimer = setTimeout(() => {
+      const r = safe.getBoundingClientRect(), st = stage.getBoundingClientRect(), n = v => Math.round(v);
+      const d = document.createElement('div');
+      d.id = 'diag';
+      d.textContent = 'window ' + innerWidth + '×' + innerHeight + ' · screen ' + screen.width + '×' + screen.height +
+        ' · viewport ' + (window.visualViewport ? n(visualViewport.width) + '×' + n(visualViewport.height) : '–') +
+        ' · safe area top ' + n(r.top) + ' bottom ' + n(innerHeight - r.bottom) + ' left ' + n(r.left) +
+        ' · standalone ' + (navigator.standalone === true) + '/' + !!(window.matchMedia && matchMedia('(display-mode: standalone)').matches) +
+        ' · frame ' + n(st.left) + ',' + n(st.top) + ' to ' + n(st.right) + ',' + n(st.bottom) + ' · scale ' + stage.dataset.scale;
+      d.addEventListener('pointerdown', () => d.remove());
+      document.body.appendChild(d);
+    }, 900);
+  });
+  stage.addEventListener('pointerup', () => clearTimeout(diagTimer));
   window.addEventListener('resize', fit);
   if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
   window.addEventListener('orientationchange', () => setTimeout(fit, 200));

@@ -224,7 +224,8 @@ function serve() {
     await p3.addInitScript(() => { Object.defineProperty(navigator, 'standalone', { get: () => true }); Object.defineProperty(screen, 'width', { get: () => 1032 }); Object.defineProperty(screen, 'height', { get: () => 1376 }); });
     await p3.goto(url);
     const m = await p3.evaluate(() => { const r = document.getElementById('stage').getBoundingClientRect(); return { top: r.top, gap: 1032 - r.bottom }; });
-    ok(m.top >= 29.5 && Math.abs(m.top - m.gap) < 1.5, 'Home Screen app (page told ' + vh + ' pt high): clear of the status bar and centred (' + Math.round(m.top) + ' / ' + Math.round(m.gap) + ' pt)');
+    const left = await p3.evaluate(() => document.getElementById('stage').getBoundingClientRect().left);
+    ok(m.top >= 30 && Math.abs(m.top - m.gap) < 1.5 && Math.abs(m.top - left) < 1.5, 'Home Screen app (page told ' + vh + ' pt high): one even margin on all sides (top ' + Math.round(m.top) + ' / bottom ' + Math.round(m.gap) + ' / side ' + Math.round(left) + ' pt)');
     await p3.close();
   }
 
