@@ -32,7 +32,7 @@ test('no raw colours or font names outside the tokens', () => {
 
 test('generated blocks are present (fonts, ornaments, locomotives)', () => {
   assert.match(html, /@generated fonts start \*\/\n@font-face\{font-family:"Bodoni Moda"/);
-  assert.match(html, /@generated ornaments start \*\/\n\s+--orn-frame:url\("data:image\/svg\+xml,/);
+  assert.match(html, /@generated ornaments start \*\/\n\s+--orn-rosette:url\("data:image\/svg\+xml,/);
   for (const t of ['2', '3', '4', '5', '6', 'D']) assert.ok(html.includes('id="loco-' + t + '"'), 'locomotive ' + t);
   assert.equal((html.match(/https?:\/\/(?!www\.w3\.org)/g) || []).length, 0, 'no outside URLs');
 });

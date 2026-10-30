@@ -58,11 +58,13 @@ bump `VERSION` in `sw.js` and keep its `FILES` list equal to: `index.html`,
 On the iPad: open the site in Safari → Share → Add to Home Screen.
 
 ## Decisions
-- Screen designed once at 1376×1032 (13" iPad Pro M4, landscape) and scaled uniformly to fit
-  any window. It keeps a small 10 pt breathing margin inside the safe area (status bar 24 pt,
-  home indicator 20 pt): enough that the frame isn't cramped against the edge and clears the
-  iPad's large rounded screen corners, small enough that nothing gets needlessly smaller
-  (`tools/device-preview.js` shows and checks this).
+- Screen designed at 1376×1032 (13" iPad Pro M4, landscape) and scaled uniformly to fit any
+  window, with one even margin on all four sides: whatever the status bar needs at the top
+  (safe-area top) plus a 10 pt breathing margin, used at the bottom and sides too. The iPad's
+  Home Screen app reports a far larger bottom safe area than the home indicator needs, so the
+  bottom inset is not used. When the height decides the scale, the stage grows wider (up to
+  15%, the grid simply widens) so the side margins match. The page frame is drawn by CSS (two
+  rules) plus a corner rosette image, so it takes any width (`tools/device-preview.js`).
 - Touch targets are 56–64 units: ≥ 52 pt on the iPad Home Screen app, ≥ 50 pt in Safari.
   All above Apple's 44 pt minimum.
 - App icon: ivory certificate with double frame and corner rosettes around the classic
@@ -106,6 +108,8 @@ On the iPad: open the site in Safari → Share → Add to Home Screen.
   CITY heading with diamonds under a rule, figure in Bodoni); the value buttons are the rubber
   stamps that make them: the same face on a mounting plate with a turned wooden handle (1.5×).
   Both are drawn by the script into a hidden sprite (`#st-imp`, `#st-face`, `#st-handle`).
+  The stamp row is 78 units high (the trains heading 36, row gaps 8) so the stamps are large
+  enough to hit easily (about 74 × 72 pt on the iPad).
   Chosen over perforated revenue stamps (paler, less legible) and a plain rounded frame.
 - Train cards are sorted by size. New train = highlighted. City chips fill the highlighted
   train, then move to the next train with room. Tapping a city removes it and highlights that
@@ -148,10 +152,17 @@ Change the look only through the tokens in `:root`, then run `node tools/design/
   - stamping a value: the rubber stamp used presses down and springs back, the impression lands
     with a thunk and a tiny wobble onto its tilt; removing one wipes the ink away with a slight
     smudge and the values after it glide over; cards that move glide; a removed train rolls away;
-  - a new train drives onto its card from the left edge (about 0.9 s for the 2 to 1.1 s for the
-    6), wheels turning to match the distance; puffs released on the way stay behind, drift up,
-    swell and fade; when it stops its own plume gathers at the chimney and the number plate is
-    stamped on. Bigger engines puff more and bigger; the diesel makes none;
+  - a new train drives onto its card from the left edge (about 1.4 s for the 2 to 1.7 s for the
+    6; never longer than ~2 s), wheels turning to match the distance; puffs released on the way
+    stay behind, drift up, swell and fade; when it stops its own plume gathers at the chimney and
+    the number plate is stamped on. Bigger engines puff more and bigger; the diesel makes none;
+  - steam while standing, in the style of the arrival trail: puffs leave the chimney one after
+    another and travel back over the boiler and up, swelling, scattering, staying visible, then
+    fading (about 3–4.5 s). An engine whose run changed lets off a short exhaust (3 puffs,
+    feedback); and now and then one standing engine of the company on screen lets off a longer
+    one (4 puffs for the 2 up to 8 for the 6): one engine at a time, every 8–12 s, not within
+    2.5 s of a tap, and none after a minute without a tap (the screen stays awake for hours at
+    the table: it must be calm when nobody touches it). This is the only motion not caused by a tap;
   - the Add-train button used gives a little chug and turns its wheels half a turn;
   - the big total rolls to its new value like adding-machine drums (digits matched from the
     right; a new leading figure rises from blank; a shorter total just rises); amounts rise;

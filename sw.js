@@ -1,6 +1,6 @@
 // Offline support for the hosted copy only (index.html registers this file only when it is
 // served from its own site). Bump VERSION whenever any file below changes.
-const VERSION = '1830-banker-v7';
+const VERSION = '1830-banker-v8';
 const FILES = [
   './',
   'index.html',

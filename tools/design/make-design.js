@@ -52,13 +52,11 @@ function rosette(x, y, r0, amp, lobes, curves, step) {
   }
   return d;
 }
-function pageFrame() {
-  const W = 1376, H = 1032;
+// The page frame: two ruled lines drawn by CSS (so the frame can take any width) and a corner
+// rosette image placed in each corner.
+function rosetteImage() {
   const ros = (x, y) => `<circle cx="${x}" cy="${y}" r="7.4" fill="${PAPER}" stroke="${RULE}" stroke-width=".8"/><path d="${rosette(x, y, 4.6, 1.3, 8, 3, 4)}" fill="none" stroke="${RULE}" stroke-width=".45"/><circle cx="${x}" cy="${y}" r="1.1" fill="${RULE}"/>`;
-  return enc(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-    <rect x="4.5" y="4.5" width="${W - 9}" height="${H - 9}" fill="none" stroke="${RULE}" stroke-width="1.2"/>
-    <rect x="9.5" y="9.5" width="${W - 19}" height="${H - 19}" fill="none" stroke="${RULE}" stroke-width=".5"/>
-    ${ros(7, 7)}${ros(W - 7, 7)}${ros(7, H - 7)}${ros(W - 7, H - 7)}</svg>`);
+  return enc(`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="-1 -1 16 16">${ros(7, 7)}</svg>`);
 }
 function cartouche(w, h, paper) {
   const r = 15, i = 5;
@@ -67,7 +65,7 @@ function cartouche(w, h, paper) {
   return enc(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path d="${shape(1, r)}" fill="none" stroke="${RULE}" stroke-width="1.3"/><path d="${shape(i, r - 3)}" fill="none" stroke="${RULE}" stroke-width=".5"/>${fl(4)}${fl(h - 4)}</svg>`);
 }
 const ORNAMENTS = [
-  `--orn-frame:${pageFrame()};`,
+  `--orn-rosette:${rosetteImage()};`,
   `--orn-band:${guilloche(0.5)};`,
   `--orn-band-faint:${guilloche(0.16)};`,
   `--orn-cartouche:${cartouche(428, 198, PAPER2)};`,

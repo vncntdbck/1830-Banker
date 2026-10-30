@@ -11,6 +11,15 @@ const URL = 'file://' + path.resolve(__dirname, '..', 'index.html');
 const SIZE = { width: 1376, height: 1032 };
 
 const CLIPS = {
+  // Standing engines now and then let off a little steam (in the app: one engine every 8–12 s;
+  // here every 4.6 s so the clip stays short), and an engine puffs when a value is stamped on it.
+  'standing-steam': async (page, tap, wait) => {
+    await page.evaluate(() => { const s = window.__banker.store; s.dispatch({ type: 'addTrain', trainType: '3' }); s.dispatch({ type: 'closeNotice' }); [40, 30].forEach(v => s.dispatch({ type: 'addCity', value: v }));
+      s.dispatch({ type: 'addTrain', trainType: '5' }); s.dispatch({ type: 'closeNotice' }); window.__banker.render(); });
+    await wait(2200);
+    for (let i = 0; i < 3; i++) { await page.evaluate(() => { window.__banker.setLastTap(Date.now() - 5000); window.__banker.breathe(); }); await wait(4600); }
+    for (const v of [50, 60]) { await tap(`[data-act="addCity"][data-v="${v}"]`); await wait(1600); }
+  },
   // Every engine type driving onto its card, puffing a trail that stays behind.
   'arrivals': async (page, tap, wait) => {
     await page.evaluate(() => { const s = window.__banker.store; s.dispatch({ type: 'select', company: 'CPR' }); s.dispatch({ type: 'addTrain', trainType: '3' }); s.dispatch({ type: 'closeNotice' }); s.dispatch({ type: 'select', company: 'PRR' }); window.__banker.render(); });

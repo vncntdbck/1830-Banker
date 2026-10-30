@@ -121,6 +121,14 @@ function serve() {
   await tap('[data-act="addCity"][data-v="30"]');
   ok(await page.$('.city.stamp') !== null, 'the city just added gets its ink-stamp animation');
   ok(await page.$('.chip.pressed') !== null, 'the rubber stamp used presses down');
+  await page.waitForTimeout(200);
+  ok(await page.$('.card.act .trail circle') !== null, 'the engine whose run changed lets off a puff of steam');
+  {
+    const breathe = ago => page.evaluate(ago => { window.__banker.setLastTap(Date.now() - ago); return window.__banker.breathe(); }, ago);
+    ok(await breathe(1000) === false, 'no idle steam while values are being entered');
+    ok(await breathe(70000) === false, 'no idle steam after a minute without a tap');
+    ok(await breathe(5000) === true, 'a standing engine now and then lets off a little steam');
+  }
   ok(await page.$$eval('.card .city', els => els.every(e => e.querySelector('.imp') && /(^| )ink-[1-6]( |$)/.test(e.className))), 'every value is an ink impression with one of the six inks');
   ok(await page.$$eval('.chip', els => els.every(e => e.querySelector('use[href="#st-handle"]') && e.querySelector('use[href="#st-face"]') && e.textContent === e.dataset.v)), 'every value button is a rubber stamp showing its value');
   {
@@ -154,7 +162,7 @@ function serve() {
   await tap('#undo');
   ok(await page.$('.card.roll') !== null, 'Undo rolls the train back in');
   // every engine has an explicit pixel size and stands on its rail inside its button or badge
-  await page.waitForTimeout(1500);   // let any arriving engine finish its drive
+  await page.waitForTimeout(2000);   // let any arriving engine finish its drive
   const fits = await page.$$eval('svg.loco', els => els.every(e => {
     const w = e.getAttribute('width'), h = e.getAttribute('height'), box = e.closest('.add, .badge');
     if (!w || !h || !box) return false;
