@@ -137,6 +137,10 @@ function serve() {
     ok(await breathe(5000) === true, 'a standing engine now and then lets off a little steam');
   }
   ok(await page.$$eval('.card .city', els => els.every(e => e.querySelector('.imp') && /(^| )ink-[1-6]( |$)/.test(e.className))), 'every value is an ink impression with one of the six inks');
+  ok(await page.$$eval('.chip', els => { const r = els.map(e => e.getBoundingClientRect());
+    const row = (a, b) => Math.abs(r[a].right - r[b].left) < 0.6, col = (a, b) => Math.abs(r[a].bottom - r[b].top) < 0.6;
+    return els.length === 10 && row(0, 1) && row(3, 4) && row(5, 6) && col(0, 5) && col(4, 9) && Math.abs(r[0].top - r[4].top) < 0.6; }),
+    'the stamps are two rows of five whose tap areas touch (no dead gaps)');
   ok(await page.$$eval('.chip', els => els.every(e => e.querySelector('use[href="#st-handle"]') && e.querySelector('use[href="#st-face"]') && e.textContent === e.dataset.v)), 'every value button is a rubber stamp showing its value');
   {
     // each impression keeps its tilt, shift and ink through redraws, other removals and Undo

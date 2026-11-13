@@ -164,7 +164,7 @@ button:disabled { cursor: default; }
 /* ----- Main ----- */
 #main { display: grid; grid-template-columns: 1fr 476px; column-gap: 16px; min-height: 0; }
 .panel { position: relative; background: var(--paper-2); border: var(--double); min-height: 0; }
-#snap { padding: 10px 16px 14px; display: grid; grid-template-rows: 40px 1fr 72px 78px; row-gap: 8px; }
+#snap { padding: 10px 16px 14px; display: grid; grid-template-rows: 40px 1fr 60px 186px; row-gap: 8px; }
 .snap-h { display: flex; align-items: baseline; gap: 14px; position: relative; }
 .snap-h::after, .ladder-h::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; height: 14px;
   background: var(--orn-band) repeat-x 0 0 / 180px 14px; pointer-events: none; }
@@ -174,6 +174,7 @@ button:disabled { cursor: default; }
 .snap-h h2 em { font-weight: 500; color: var(--ink-2); }
 .snap-h p { font-family: var(--font-display); font-style: italic; font-size: 17px; color: var(--ink-2); margin-left: auto; }
 #cards { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; }
+#cards.fit > .card { zoom: var(--z); }
 .card { display: grid; grid-template-columns: 112px 1fr 92px 64px; column-gap: 6px; align-items: center;
   background: var(--paper); border: 1.5px solid var(--card-rule); padding: 7px 6px; flex: none; cursor: pointer; }
 .card.act { border-color: var(--accent); }
@@ -211,7 +212,10 @@ button:disabled { cursor: default; }
 .add:disabled { opacity: .35; border-color: var(--hair); }
 .add:disabled .top, .add:disabled .sub { color: var(--ink-2); }
 .add:not(:disabled):active, .add:not(:disabled):active b { background: var(--paper-3); }
-.chiprow { display: grid; grid-template-columns: repeat(10, 1fr); column-gap: 8px; }
+.chiprow { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: 99px 99px; margin: -6px -7px; }
+/* each stamp's tap area reaches its neighbours (no gaps between the buttons; the space between
+   the stamps is padding inside each button), so a tap between two stamps still hits one */
+.chip { padding: 6px 7px; }
 /* the value buttons are the rubber stamps that make the impressions: the same face, a mounting
    plate and a turned wooden handle (#st-face, #st-handle) */
 .chip { position: relative; color: var(--ink); }
@@ -789,7 +793,7 @@ window.BANKER_SOUNDS = { whistle: "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAA
   // Engines are drawn at one common scale per place, so their lengths compare. Each one gets an
   // explicit pixel size and sits on its rail (bottom edge), so no browser can crop it.
   // inline: a private copy of the drawing (needed when its wheels or steam are about to move).
-  const K = { card: 0.375, add: 0.29, sheet: 0.72, rust: 0.4 };
+  const K = { card: 0.375, add: 0.27, sheet: 0.72, rust: 0.4 };
   const locoBox = {};
   const box = type => locoBox[type] || (locoBox[type] = ((document.getElementById('loco-' + type) || { dataset: {} }).dataset.box || '0 0 120 80').split(' ').map(Number));
   const locoInner = type => { const g = document.getElementById('loco-' + type); return g ? g.innerHTML : ''; };
@@ -837,7 +841,7 @@ window.BANKER_SOUNDS = { whistle: "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAA
   }
 
   // The bank office stamp, drawn once into a hidden sprite: #st-imp (54 × 54, the impression frame
-  // and heading), #st-face and #st-handle (72 × 64, the rubber stamp: face, mounting plate, turned
+  // and heading), #st-face and #st-handle (152 × 84, the wide rubber stamp: face, mounting plate, turned
   // handle at 1.5×). Colours come from the tokens through currentColor and --paper-2.
   (function stampSprite() {
     const f = n => +n.toFixed(2);
@@ -849,15 +853,18 @@ window.BANKER_SOUNDS = { whistle: "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAA
     const line = 'fill:none;stroke:currentColor', paper = 'fill:var(--paper-2);stroke:currentColor';
     const diamond = (x, y, a) => '<path style="fill:currentColor" d="M' + x + ' ' + (y - a) + ' L' + (x + a) + ' ' + y + ' L' + x + ' ' + (y + a) + ' L' + (x - a) + ' ' + y + ' Z"/>';
     const label = (x, y, size) => '<text x="' + x + '" y="' + y + '" style="fill:currentColor;font-family:var(--font-label);font-weight:700;font-size:' + size + 'px;letter-spacing:.22em;text-anchor:middle;dominant-baseline:central">CITY</text>';
-    const face = (x0, y0, x1, y1, rule, lab) => '<path style="' + paper + '" stroke-width="1.6" d="' + notched(x0, y0, x1, y1, 5, 0) + '"/><path style="' + line + '" stroke-width=".7" d="' + notched(x0, y0, x1, y1, 5, 2.6) + '"/>' +
-      '<line style="' + line + '" stroke-width=".7" x1="' + (x0 + 6.5) + '" y1="' + rule + '" x2="' + (x1 - 6.5) + '" y2="' + rule + '"/>' + diamond(x0 + 11.5, rule - 4.8, 1.4) + diamond(x1 - 11.5, rule - 4.8, 1.4) + label((x0 + x1) / 2, rule - 4.7, lab);
-    const cx = 36, s = 1.5;                                 // the turned handle: knob, neck and collar
-    const handle = '<g transform="translate(' + cx + ' 0) scale(' + s + ') translate(-' + cx + ' 0)"><path style="' + paper + '" stroke-width=".96" d="M28 5.2 C28 .6 44 .6 44 5.2 C44 8 39.6 8.6 38.8 10.8 L38.8 12 C41 12.4 42.6 13.4 42.6 14.6 L29.4 14.6 C29.4 13.4 31 12.4 33.2 12 L33.2 10.8 C32.4 8.6 28 8 28 5.2 Z"/>' +
+    const face = (x0, y0, x1, y1, rule, lab, dOff) => {
+      const m = (x0 + x1) / 2, d = dOff || (x1 - x0) / 2 - 11.5;  // diamonds: at the ends, or flanking the label
+      return '<path style="' + paper + '" stroke-width="1.6" d="' + notched(x0, y0, x1, y1, 5, 0) + '"/><path style="' + line + '" stroke-width=".7" d="' + notched(x0, y0, x1, y1, 5, 2.6) + '"/>' +
+        '<line style="' + line + '" stroke-width=".7" x1="' + (x0 + 6.5) + '" y1="' + rule + '" x2="' + (x1 - 6.5) + '" y2="' + rule + '"/>' + diamond(m - d, rule - 4.8, 1.4) + diamond(m + d, rule - 4.8, 1.4) + label(m, rule - 4.7, lab);
+    };
+    const cx = 76, s = 1.6;                                 // the turned handle: knob, neck and collar
+    const handle = '<g transform="translate(' + cx + ' 0) scale(' + s + ') translate(-36 0)"><path style="' + paper + '" stroke-width=".96" d="M28 5.2 C28 .6 44 .6 44 5.2 C44 8 39.6 8.6 38.8 10.8 L38.8 12 C41 12.4 42.6 13.4 42.6 14.6 L29.4 14.6 C29.4 13.4 31 12.4 33.2 12 L33.2 10.8 C32.4 8.6 28 8 28 5.2 Z"/>' +
       '<path style="' + line + '" stroke-width=".55" d="M39 2.6 Q41.8 3.6 41.6 6.4"/><path style="' + line + '" stroke-width=".45" d="M37.2 2.2 Q39.4 2.9 39.6 4.6"/></g>';
     const svg = '<svg id="stamps" width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' +
       '<g id="st-imp">' + face(.5, .5, 53.5, 53.5, 14.2, 7.4).replace(/style="fill:var\(--paper-2\);/g, 'style="fill:none;') + '</g>' +
       '<g id="st-handle">' + handle + '</g>' +
-      '<g id="st-face"><rect style="fill:var(--paper-3);stroke:currentColor" stroke-width="1.1" x="10.5" y="21.9" width="51" height="3.6" rx="1"/>' + face(4.5, 25.9, 67.5, 63.5, 36.3, 7.2) + '</g>' +
+      '<g id="st-face"><rect style="fill:var(--paper-3);stroke:currentColor" stroke-width="1.1" x="26" y="23.4" width="100" height="3.6" rx="1"/>' + face(4.5, 27.4, 147.5, 83.5, 40, 8, 25) + '</g>' +
       '</defs></svg>';
     document.body.insertAdjacentHTML('afterbegin', svg);
   })();
@@ -891,7 +898,7 @@ window.BANKER_SOUNDS = { whistle: "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAA
       ' aria-label="Add ' + C.trainName(o.type) + '"><span class="top"><b>' + o.type + '</b>' + loco(o.type, K.add) + '</span><span class="sub">' +
       (o.disabled ? esc(o.reason) : (o.advancesTo ? 'starts phase ' + o.advancesTo : '&nbsp;')) + '</span></button>').join('');
     const chips = C.CHIPS.map(v => '<button class="chip num" data-act="addCity" data-v="' + v + '"' + (target ? '' : ' disabled') + ' aria-label="' + v + '">' +
-      '<svg viewBox="0 0 72 64" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><use class="hdl" href="#st-handle"/><use href="#st-face"/><text class="stamp-fig" x="36" y="48.7" font-size="' + (v >= 100 ? 18.5 : 23) + '">' + v + '</text></svg></button>').join('');
+      '<svg viewBox="0 0 152 84" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><use class="hdl" href="#st-handle"/><use href="#st-face"/><text class="stamp-fig" x="76" y="63" font-size="' + (v >= 100 ? 31 : 35) + '">' + v + '</text></svg></button>').join('');
     return '<section id="snap" class="panel"><div class="snap-h"><h2 style="' + coVars(st.selected) + '"><i></i>' + esc(st.selected) + ' <em>trains &amp; runs</em></h2>' +
       '<p>Tap a value to add · tap a city to remove</p></div>' +
       '<div id="cards">' + cards + '</div>' +
@@ -1223,6 +1230,10 @@ window.BANKER_SOUNDS = { whistle: "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAA
     const st = store.state;
     stage.innerHTML = nowHTML(st) + nextHTML(st) + cosHTML(st) +
       '<div id="main">' + snapHTML(st) + payHTML(st) + '</div>' + noticeHTML(st);
+    // The safety net: if the trains ever don't fit their area (e.g. two 21-city diesels), the cards
+    // are drawn just small enough to fit. Never in normal play.
+    const cardsEl = document.getElementById('cards');
+    for (let z = 1; z > 0.6 && cardsEl.scrollHeight > cardsEl.clientHeight + 1; ) { z -= 0.04; cardsEl.style.setProperty('--z', z.toFixed(2)); cardsEl.classList.add('fit'); }
     // Shrink the total only if this font draws it wider than its frame.
     const t = document.getElementById('total');
     let fs = Number(t.dataset.fs);

@@ -97,7 +97,10 @@ const CASES = {
           // design units == iPad points at full size
           const w = r.width / s, h = r.height / s;
           minTarget = Math.min(minTarget, w, h);
-          if (w < 55.5 || h < 55.5) small.push((el.className || el.id) + ' ' + w.toFixed(0) + 'x' + h.toFixed(0));
+          // the safety net (#cards.fit) may draw the train cards smaller in extreme cases: then the
+          // values still keep Apple's 44 pt minimum (47 units ≈ 44 pt on the iPad)
+          const min = el.closest('#cards.fit') ? 47 : 55.5;
+          if (w < min || h < min) small.push((el.className || el.id) + ' ' + w.toFixed(0) + 'x' + h.toFixed(0));
         });
         const totalFont = parseFloat(getComputedStyle(document.getElementById('total')).fontSize);
         const amountFont = parseFloat(getComputedStyle(document.getElementById('per10')).fontSize);

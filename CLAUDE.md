@@ -130,11 +130,18 @@ On the iPad: open the site in Safari → Share → Add to Home Screen.
   word is not used on screen).
 - City values are ink impressions of a bank office stamp (cut corners, heavy + fine line, a small
   CITY heading with diamonds under a rule, figure in Bodoni); the value buttons are the rubber
-  stamps that make them: the same face on a mounting plate with a turned wooden handle (1.5×).
-  Both are drawn by the script into a hidden sprite (`#st-imp`, `#st-face`, `#st-handle`).
-  The stamp row is 78 units high (the trains heading 40 with its text lifted clear of the
-  guilloche band, row gaps 8, gaps between train cards 8) so the stamps are large
-  enough to hit easily (about 74 × 72 pt on the iPad).
+  stamps that make them: wide bank stamps with the same face language on a mounting plate with a
+  turned wooden handle (1.6×). Both are drawn by the script into a hidden sprite (`#st-imp`
+  54 × 54, `#st-face` + `#st-handle` 152 × 84).
+  After a real game the stamps were too small to hit easily, so they are two rows of five
+  (10–50, 60–100), each 150 × 87 units (about 137 × 79 pt on the iPad, face about 130 × 51 pt,
+  figure 35), with tap areas that reach their neighbours (no dead gaps). The stamps stay at the
+  bottom (most used, nearest the hand on the table), Add train above them (62 units, used
+  rarely). Panel rows: heading 40, trains, Add train 62, stamps 186 (two rows of 99 with the
+  row pulled out by 6/7 units: the space between stamps is padding inside each button), gaps 8.
+  The trains area (356 units) fits four one-row trains (early game) and a typical late game;
+  if it ever doesn't (two 21-city diesels), the train cards are drawn just small enough to fit
+  (`#cards.fit`, CSS zoom), never in normal play.
   Chosen over perforated revenue stamps (paler, less legible) and a plain rounded frame.
 - Train cards are sorted by size. New train = highlighted. City chips fill the highlighted
   train, then move to the next train with room. Tapping a city removes it and highlights that
