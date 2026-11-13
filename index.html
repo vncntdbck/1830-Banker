@@ -164,6 +164,10 @@ button:disabled { cursor: default; }
 /* ----- Main ----- */
 #main { display: grid; grid-template-columns: 1fr 476px; column-gap: 16px; min-height: 0; }
 .panel { position: relative; background: var(--paper-2); border: var(--double); min-height: 0; }
+/* the two panels of the company on screen are dressed like its button: its colour in the double
+   frame and a solid band along the top (the inside stays ivory and navy) */
+#main .panel { border-color: var(--co, var(--rule)); }
+#main .panel::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 8px; background: var(--co); pointer-events: none; }
 #snap { padding: 10px 16px 14px; display: grid; grid-template-rows: 40px 1fr 60px 186px; row-gap: 8px; }
 .snap-h { display: flex; align-items: baseline; gap: 14px; position: relative; }
 .snap-h::after, .ladder-h::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; height: 14px;
@@ -1229,7 +1233,7 @@ window.BANKER_SOUNDS = { whistle: "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAA
   function render(was) {
     const st = store.state;
     stage.innerHTML = nowHTML(st) + nextHTML(st) + cosHTML(st) +
-      '<div id="main">' + snapHTML(st) + payHTML(st) + '</div>' + noticeHTML(st);
+      '<div id="main" style="' + coVars(st.selected) + '">' + snapHTML(st) + payHTML(st) + '</div>' + noticeHTML(st);
     // The safety net: if the trains ever don't fit their area (e.g. two 21-city diesels), the cards
     // are drawn just small enough to fit. Never in normal play.
     const cardsEl = document.getElementById('cards');

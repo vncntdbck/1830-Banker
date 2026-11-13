@@ -87,6 +87,10 @@ On the iPad: open the site in Safari → Share → Add to Home Screen.
 - The Next line shows what the next phase changes (rusting in red). Only its "Start phase N"
   button advances the phase; tapping the text does nothing. Undo sits next to it (it undoes
   anything: values, trains, a phase change, even New game); New game is at the far edge.
+- The two panels (trains & runs, payout) are dressed like the selected company's button: its
+  colour in their double frame and an 8-unit solid band along the top; the inside stays ivory
+  and navy. The owner asked for a stronger link to the selected company; a coloured frame alone
+  was too faint (light colours, NYC black close to navy) and a heavier frame felt boxed in.
 - Company cards: double frame + top band in the company colour on ivory. The selected company
   keeps exactly that double frame (outer line, ivory gap, inner line); everything inside the
   inner line fills with its colour.
@@ -167,7 +171,7 @@ Change the look only through the tokens in `:root`, then run `node tools/design/
   needs attention: NEW, rusting, the train being filled, a one-city run, armed New game.
   Stamps are always navy ink, never red.
   Company colours are the functional code and appear only on company buttons, the snapshot
-  title square and the selected fill. Tile colours appear only as phase swatches.
+  title square, the selected fill, and the frame + top band of the two panels (below). Tile colours appear only as phase swatches.
 - **Type:** Bodoni Moda (Didone) for names, money and the phase number; Barlow Condensed for
   labels and rules; Bodoni italic for quiet phrases. All figures lining + tabular. Embedded,
   so nothing is downloaded. Hierarchy: total payout > holding amounts > phase number > rules.
